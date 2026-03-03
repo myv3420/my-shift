@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#13121e">
+    <title>ふたりのシフト</title>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --bg: #13121e; --surface: #1e1c2e; --text: #e2dff5;
+            --accent: #c9b8ff; --hiru: #ffe090; --yoru: #c4b3ff; --rest: #ffb3c6;
+            --sel: rgba(201, 184, 255, 0.4);
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Zen Maru Gothic', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; min-height: 100vh; }
+        #capture-area { background: var(--bg); padding-bottom: 20px; width: 100%; }
+        .main-content { padding-bottom: 250px; }
+        .hdr { padding: 15px; text-align: center; position: relative; }
+        .m-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 0 10px; }
+        .btn-m { background: #252338; border: none; color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; }
+        .btn-reset { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.05); border: none; color: #5a5280; font-size: 0.6rem; padding: 5px 10px; border-radius: 20px; }
+        .cal-wrap { padding: 10px; }
+        .dow-row { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 5px; }
+        .dow { text-align: center; font-size: 0.6rem; color: #5a5280; }
+        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .day { background: var(--surface); border-radius: 12px; min-height: 95px; padding: 5px; display: flex; flex-direction: column; gap: 3px; position: relative; border: 2px solid transparent; transition: 0.1s; }
+        .day.selected { border-color: var(--accent); background: var(--sel); box-shadow: 0 0 10px var(--accent); }
+        .d-num { font-size: 0.7rem; color: #5a5280; text-align: right; }
+        .btn { width: 100%; border: none; border-radius: 6px; padding: 4px; font-size: 0.6rem; font-weight: bold; text-align: left; z-index: 10; position: relative; }
+        body.multi-mode-active .btn { pointer-events: none; }
+        .s-none { background: #252338; color: #444; }
+        .s-hiru { background: rgba(255,224,144,0.15); color: var(--hiru); }
+        .s-yoru { background: rgba(196,179,255,0.15); color: var(--yoru); }
+        .s-yasumi { background: rgba(255,179,198,0.15); color: var(--rest); }
+        .match { background: rgba(255,179,198,0.12); color: #ffb3c6; font-size: 0.45rem; text-align: center; border-radius: 4px; margin-top: auto; padding: 1px; font-weight: bold; pointer-events: none; z-index: 5; }
+        .footer { position: fixed; bottom: 0; width: 100%; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: rgba(19, 18, 30, 0.98); z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+        .multi-label { font-size: 0.65rem; color: var(--accent); font-weight: bold; margin-bottom: 2px; }
+        .tool-group { display: flex; flex-direction: column; gap: 5px; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 12px; }
+        .f-row { display: flex; gap: 5px; }
+        .btn-f { flex: 1; padding: 10px; border-radius: 10px; border: none; font-weight: bold; background: #252338; color: var(--text); font-size: 0.65rem; }
+        .btn-main { background: linear-gradient(135deg, #c9b8ff, #a0c4ff); color: #13121e; padding: 12px; font-size: 0.75rem; }
+        .btn-mode { background: #3b375a; color: var(--accent); }
+        .btn-mode.active { background: var(--accent); color: #13121e; }
+        #img-ov { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; padding: 20px; padding-bottom: 40px; }
+        .img-container { flex: 1; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
+        #res-img { max-width: 100%; max-height: 80%; object-fit: contain; border-radius: 12px; border: 2px solid var(--accent); }
+    </style>
+</head>
+<body id="main-body">
+    <div class="main-content">
+        <div id="capture-area">
+            <div class="hdr">
+                <button class="btn-reset" onclick="resetAll()">🗑️ 全リセット</button>
+                <div style="font-size: 0.9rem; font-weight: bold; color: var(--accent);">🌙 ふたりのシフト</div>
+                <div class="m-row">
+                    <button class="btn-m" onclick="changeM(-1)">‹</button>
+                    <h2 id="title" style="margin:0; font-size:1.1rem;"></h2>
+                    <button class="btn-m" onclick="changeM(1)">›</button>
+                </div>
+            </div>
+            <div class="cal-wrap">
+                <div class="dow-row"><div class="dow">月</div><div class="dow">火</div><div class="dow">水</div><div class="dow">木</div><div class="dow">金</div><div class="dow" style="color:#7ab4f0">土</div><div class="dow" style="color:#f0889e">日</div></div>
+                <div class="grid" id="grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div id="multi-tools" style="display:none; flex-direction:column; gap:8px;">
+            <div class="tool-group">
+                <div class="multi-label">👤 祐さん（上段）を一括入力</div>
+                <div class="f-row">
+                    <button class="btn-f" style="color:var(--hiru)" onclick="applyMulti('p1','hiru')">昼☀</button>
+                    <button class="btn-f" style="color:var(--yoru)" onclick="applyMulti('p1','yoru')">夜🌙</button>
+                    <button class="btn-f" style="color:var(--rest)" onclick="applyMulti('p1','yasumi')">休み</button>
+                </div>
+            </div>
+            <div class="tool-group">
+                <div class="multi-label">👤 佑さん（下段）を一括入力</div>
+                <div class="f-row">
+                    <button class="btn-f" style="color:var(--hiru)" onclick="applyMulti('p2','hiru')">昼☀</button>
+                    <button class="btn-f" style="color:var(--yoru)" onclick="applyMulti('p2','yoru')">夜🌙</button>
+                    <button class="btn-f" style="color:var(--rest)" onclick="applyMulti('p2','yasumi')">休み</button>
+                </div>
+            </div>
+        </div>
+        <div class="f-row">
+            <button id="mode-btn" class="btn-f btn-mode" onclick="toggleMode()">🖱️ 複数選択モード</button>
+            <button class="btn-f btn-main" onclick="takePhoto()">📸 画像保存</button>
+        </div>
+    </div>
+
+    <div id="img-ov">
+        <div style="font-size: 0.8rem; margin-bottom: 15px; color: #fff;">👇 画像を長押しして「保存」してね！</div>
+        <div class="img-container"><img id="res-img"></div>
+        <button class="btn-f" style="width:150px; flex:none; margin-top:20px;" onclick="document.getElementById('img-ov').style.display='none'">とじる</button>
+    </div>
+
+    <script>
+        // 💡 サービスワーカー（オフライン対応）の登録
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                const CACHE_NAME = 'shift-app-v1';
+                self.addEventListener('install', e => {
+                    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])));
+                });
+                self.addEventListener('fetch', e => {
+                    e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+                });
+            `;
+            const blob = new Blob([swCode], {type: 'application/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(blob));
+        }
+
+        let curY = new Date().getFullYear(), curM = new Date().getMonth();
+        let data = JSON.parse(localStorage.getItem('shift_v_pwa') || '{}');
+        let selectedDays = [];
+        let isMultiMode = false;
+        const labels = {none:'－', hiru:'昼☀', yoru:'夜🌙', yasumi:'休み'};
+        const cycles = ['none', 'hiru', 'yoru', 'yasumi'];
+
+        function render() {
+            document.getElementById('title').innerText = `${curY}年 ${curM + 1}月`;
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            const first = new Date(curY, curM, 1).getDay();
+            const offset = first === 0 ? 6 : first - 1;
+            const last = new Date(curY, curM + 1, 0).getDate();
+            for (let i=0; i<offset; i++) grid.appendChild(Object.assign(document.createElement('div'), {className:'day', style:'opacity:0'}));
+            for (let d = 1; d <= last; d++) {
+                const key = `${curY}-${curM+1}-${d}`;
+                const s = data[key] || { p1: 'none', p2: 'none' };
+                const box = document.createElement('div');
+                box.className = 'day' + (selectedDays.includes(key) ? ' selected' : '');
+                box.innerHTML = `<div class="d-num">${d}</div>`;
+                box.addEventListener('click', () => {
+                    if (isMultiMode) {
+                        if (selectedDays.includes(key)) selectedDays = selectedDays.filter(k => k !== key);
+                        else selectedDays.push(key);
+                        render();
+                    }
+                });
+                [{p:'p1',n:'祐'}, {p:'p2',n:'佑'}].forEach(u => {
+                    const b = document.createElement('button');
+                    b.className = 'btn s-' + s[u.p];
+                    b.innerText = `${u.n[0]}: ${labels[s[u.p]]}`;
+                    b.onclick = (e) => {
+                        if (!isMultiMode) {
+                            e.stopPropagation();
+                            s[u.p] = cycles[(cycles.indexOf(s[u.p]) + 1) % 4];
+                            data[key] = s; save(); render();
+                        }
+                    };
+                    box.appendChild(b);
+                });
+                if(s.p1 !== 'none' && s.p1 === s.p2) {
+                    const m = document.createElement('div'); m.className='match'; m.innerText='💕一致'; box.appendChild(m);
+                }
+                grid.appendChild(box);
+            }
+        }
+        function toggleMode() {
+            isMultiMode = !isMultiMode; selectedDays = [];
+            const btn = document.getElementById('mode-btn');
+            const tools = document.getElementById('multi-tools');
+            btn.innerText = isMultiMode ? "🚫 選択解除して終了" : "🖱️ 複数選択モード";
+            btn.classList.toggle('active', isMultiMode);
+            tools.style.display = isMultiMode ? 'flex' : 'none';
+            document.getElementById('main-body').classList.toggle('multi-mode-active', isMultiMode);
+            render();
+        }
+        function applyMulti(targetP, type) {
+            if (selectedDays.length === 0) { alert("日付を選んでね！"); return; }
+            selectedDays.forEach(key => {
+                if (!data[key]) data[key] = { p1: 'none', p2: 'none' };
+                data[key][targetP] = type;
+            });
+            save(); render();
+        }
+        function save() { localStorage.setItem('shift_v_pwa', JSON.stringify(data)); }
+        function resetAll() { if(confirm("全部消しますか？")) { data={}; save(); render(); } }
+        function changeM(v) { curM += v; if(curM>11){curM=0;curY++;} if(curM<0){curM=11;curY--;} render(); }
+        function takePhoto() {
+            const area = document.getElementById('capture-area');
+            const btn = event.target;
+            btn.innerText = "作成中...";
+            html2canvas(area, { backgroundColor: "#13121e", scale: 3, useCORS: true }).then(canvas => {
+                document.getElementById('res-img').src = canvas.toDataURL("image/png");
+                document.getElementById('img-ov').style.display = 'flex';
+                btn.innerText = "📸 画像保存";
+            });
+        }
+        render();
+    </script>
+</body>
+</html>
