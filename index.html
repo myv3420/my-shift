@@ -32,11 +32,10 @@
             overflow-y: auto; 
         }
         
-        /* 通常時の余白設定 */
         #capture-area { 
             background: var(--bg); 
             width: 100%; 
-            padding-bottom: 120px; /* 通常時は30日が隠れないように余白を確保 */
+            padding-bottom: 120px;
         } 
         
         .hdr { 
@@ -78,7 +77,6 @@
             color: var(--match-color); background: var(--match-bg);
         }
 
-        /* フッター */
         .footer { position: fixed; bottom: 0; width: 100%; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: rgba(19,18,30,0.98); z-index: 100; padding-bottom: calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
         .f-row { display: flex; gap: 6px; }
         .btn-f { flex: 1; padding: 12px 5px; border-radius: 12px; border: none; font-weight: bold; background: #252338; color: var(--text); font-size: 0.65rem; display: flex; align-items: center; justify-content: center; gap: 4px; }
@@ -86,11 +84,9 @@
         .btn-mode.active { background: var(--accent); color: #13121e; }
         .btn-danger { background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.2); color: #ff4757; }
         
-        /* オーバーレイ */
         #img-ov { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
         #res-img { max-width: 90%; max-height: 75%; object-fit: contain; border-radius: 12px; }
         
-        /* 閉じるボタンの修正 */
         .btn-close { 
             margin-top: 25px; 
             width: 160px; 
@@ -271,7 +267,19 @@
             save(); render();
         }
         function save() { localStorage.setItem('shift_v_final', JSON.stringify(data)); }
-        function resetAll() { if(confirm("すべてのシフトをリセットしますか？")) { data={}; save(); render(); } }
+        
+        // 🚀 「表示中の月だけ」リセットするように修正
+        function resetAll() { 
+            if(confirm(`${curY}年${curM + 1}月のシフトをリセットしますか？`)) { 
+                const prefix = `${curY}-${curM+1}-`;
+                Object.keys(data).forEach(key => {
+                    if (key.startsWith(prefix)) {
+                        delete data[key];
+                    }
+                });
+                save(); render(); 
+            } 
+        }
         
         function changeM(v) { 
             curY = (curM + v < 0) ? curY - 1 : (curM + v > 11) ? curY + 1 : curY;
@@ -284,8 +292,6 @@
             const btn = event.target; 
             btn.innerText = "...";
             const area = document.getElementById('capture-area');
-            
-            // 🚀 保存時だけ余白を消すマジック
             area.style.paddingBottom = "0";
 
             html2canvas(area, { 
@@ -294,9 +300,7 @@
                 useCORS: true,
                 windowHeight: area.scrollHeight 
             }).then(canvas => {
-                // 🚀 保存が終わったら余白を元に戻す
                 area.style.paddingBottom = "120px";
-                
                 document.getElementById('res-img').src = canvas.toDataURL();
                 document.getElementById('img-ov').style.display = 'flex';
                 btn.innerHTML = "📸 画像保存";
