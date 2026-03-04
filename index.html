@@ -22,50 +22,35 @@
             --sunday-red: #f0889e; --saturday-blue: #7ab4f0;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Zen Maru Gothic', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; min-height: 100vh; overflow: hidden; }
         
-        /* 🚀 ヘッダー：年月を強調 */
+        html, body { 
+            font-family: 'Zen Maru Gothic', sans-serif; 
+            background: var(--bg); color: var(--text); 
+            margin: 0; padding: 0; 
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto; 
+        }
+        
+        /* 通常時の余白設定 */
+        #capture-area { 
+            background: var(--bg); 
+            width: 100%; 
+            padding-bottom: 120px; /* 通常時は30日が隠れないように余白を確保 */
+        } 
+        
         .hdr { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 20px 10px 15px;
-            gap: 20px;
+            display: flex; align-items: center; justify-content: center; 
+            padding: 20px 10px 15px; gap: 20px;
         }
-        .title-row { 
-            text-align: center; 
-            display: flex; 
-            align-items: baseline; 
-            gap: 8px; 
-        }
+        .title-row { text-align: center; display: flex; align-items: baseline; gap: 8px; }
         .title-year { font-size: 0.9rem; color: var(--accent); opacity: 0.8; }
         #month-disp { font-size: 1.8rem; font-weight: 700; line-height: 1; color: var(--text); }
-        
         .btn-m { background: #252338; border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-
-        /* 📖 スワイプコンテナ */
-        #scroll-container {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            scroll-behavior: smooth;
-            width: 100%;
-            height: calc(100vh - 200px);
-        }
-        #scroll-container::-webkit-scrollbar { display: none; }
-
-        .calendar-page {
-            flex: 0 0 100%;
-            width: 100%;
-            scroll-snap-align: start;
-            padding: 0 8px 120px;
-            overflow-y: auto;
-        }
 
         .dow-row { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 8px; padding: 0 8px; }
         .dow { text-align: center; font-size: 0.7rem; color: #5a5280; font-weight: bold; }
-
-        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; padding: 0 8px; }
         
         .day { background: var(--surface); border-radius: 8px; min-height: 95px; padding: 4px 2px; display: flex; flex-direction: column; gap: 3px; position: relative; border: 2px solid transparent; overflow: hidden; }
         .day.today { border-color: #ffffff; box-shadow: 0 0 10px rgba(255,255,255,0.4); z-index: 10; }
@@ -80,7 +65,7 @@
             overflow: hidden; border: none; padding: 0; height: 34px; cursor: pointer; flex-shrink: 0;
         }
         .btn-label { width: 12px; font-size: 0.5rem; text-align: center; font-weight: bold; flex-shrink: 0; }
-        .btn-content { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: bold; line-height: 1; text-align: center; }
+        .btn-content { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.55rem; font-weight: bold; line-height: 1; text-align: center; }
 
         .s-none { background: #252338; color: #444; }
         .s-hiru { background: var(--hiru-bg); color: var(--hiru-text); }
@@ -93,7 +78,7 @@
             color: var(--match-color); background: var(--match-bg);
         }
 
-        /* 🚀 フッター：3つのボタンを1列に */
+        /* フッター */
         .footer { position: fixed; bottom: 0; width: 100%; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: rgba(19,18,30,0.98); z-index: 100; padding-bottom: calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
         .f-row { display: flex; gap: 6px; }
         .btn-f { flex: 1; padding: 12px 5px; border-radius: 12px; border: none; font-weight: bold; background: #252338; color: var(--text); font-size: 0.65rem; display: flex; align-items: center; justify-content: center; gap: 4px; }
@@ -101,8 +86,25 @@
         .btn-mode.active { background: var(--accent); color: #13121e; }
         .btn-danger { background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.2); color: #ff4757; }
         
-        #img-ov { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; padding: 20px; }
-        #res-img { max-width: 100%; max-height: 85%; object-fit: contain; border-radius: 10px; }
+        /* オーバーレイ */
+        #img-ov { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        #res-img { max-width: 90%; max-height: 75%; object-fit: contain; border-radius: 12px; }
+        
+        /* 閉じるボタンの修正 */
+        .btn-close { 
+            margin-top: 25px; 
+            width: 160px; 
+            height: 42px; 
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 21px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -120,11 +122,7 @@
             <div class="dow">月</div><div class="dow">火</div><div class="dow">水</div><div class="dow">木</div><div class="dow">金</div><div class="dow" style="color:var(--saturday-blue)">土</div><div class="dow" style="color:var(--sunday-red)">日</div>
         </div>
 
-        <div id="scroll-container">
-            <div class="calendar-page">
-                <div class="grid" id="grid"></div>
-            </div>
-        </div>
+        <div class="grid" id="grid"></div>
     </div>
 
     <div class="footer">
@@ -148,8 +146,9 @@
     </div>
 
     <div id="img-ov">
+        <div style="color:white; margin-bottom:10px; font-size:0.8rem;">画像を長押しして保存してね</div>
         <img id="res-img">
-        <button class="btn-f" style="margin-top:20px; max-width:150px;" onclick="document.getElementById('img-ov').style.display='none'">閉じる</button>
+        <button class="btn-close" onclick="document.getElementById('img-ov').style.display='none'">閉じる</button>
     </div>
 
     <script>
@@ -159,12 +158,12 @@
         let isMultiMode = false;
 
         let touchStartX = 0;
-        const scrollContainer = document.getElementById('scroll-container');
-        scrollContainer.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
-        scrollContainer.addEventListener('touchend', e => {
+        document.body.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+        document.body.addEventListener('touchend', e => {
+            if (isMultiMode) return;
             const touchEndX = e.changedTouches[0].screenX;
             const diff = touchStartX - touchEndX;
-            if (Math.abs(diff) > 60) changeM(diff > 0 ? 1 : -1);
+            if (Math.abs(diff) > 80) changeM(diff > 0 ? 1 : -1);
         }, {passive: true});
 
         function getHolidayName(y, m, d) {
@@ -275,25 +274,32 @@
         function resetAll() { if(confirm("すべてのシフトをリセットしますか？")) { data={}; save(); render(); } }
         
         function changeM(v) { 
-            curM += v; 
-            if(curM>11){curM=0;curY++;} 
-            if(curM<0){curM=11;curY--;} 
+            curY = (curM + v < 0) ? curY - 1 : (curM + v > 11) ? curY + 1 : curY;
+            curM = (curM + v + 12) % 12;
             render();
-            document.querySelector('.calendar-page').scrollTop = 0;
+            window.scrollTo(0, 0);
         }
 
         function takePhoto() {
             const btn = event.target; 
-            const originalText = btn.innerText;
             btn.innerText = "...";
-            html2canvas(document.getElementById('capture-area'), { 
+            const area = document.getElementById('capture-area');
+            
+            // 🚀 保存時だけ余白を消すマジック
+            area.style.paddingBottom = "0";
+
+            html2canvas(area, { 
                 backgroundColor: "#13121e", 
                 scale: 2,
-                useCORS: true
+                useCORS: true,
+                windowHeight: area.scrollHeight 
             }).then(canvas => {
+                // 🚀 保存が終わったら余白を元に戻す
+                area.style.paddingBottom = "120px";
+                
                 document.getElementById('res-img').src = canvas.toDataURL();
                 document.getElementById('img-ov').style.display = 'flex';
-                btn.innerText = originalText;
+                btn.innerHTML = "📸 画像保存";
             });
         }
         render();
