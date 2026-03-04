@@ -31,7 +31,23 @@
         .day { background: var(--surface); border-radius: 12px; min-height: 95px; padding: 5px; display: flex; flex-direction: column; gap: 3px; position: relative; border: 2px solid transparent; transition: 0.1s; }
         .day.selected { border-color: var(--accent); background: var(--sel); box-shadow: 0 0 10px var(--accent); }
         .d-num { font-size: 0.7rem; color: #5a5280; text-align: right; }
-        .btn { width: 100%; border: none; border-radius: 6px; padding: 4px; font-size: 0.6rem; font-weight: bold; text-align: left; z-index: 10; position: relative; }
+        
+        /* 🚀 【修正箇所】文字を一行に収めるための設定 */
+        .btn { 
+            width: 100%; 
+            border: none; 
+            border-radius: 6px; 
+            padding: 4px 2px; /* 左右の余白を少し詰めました */
+            font-size: 0.55rem; /* 文字を少しだけ小さくしました */
+            font-weight: bold; 
+            text-align: left; 
+            z-index: 10; 
+            position: relative; 
+            white-space: nowrap; /* 👈 これで絶対に改行されません */
+            overflow: hidden;    /* 👈 万が一はみ出しても枠を壊しません */
+            text-overflow: clip; 
+        }
+
         body.multi-mode-active .btn { pointer-events: none; }
         .s-none { background: #252338; color: #444; }
         .s-hiru { background: rgba(255,224,144,0.15); color: var(--hiru); }
@@ -102,7 +118,6 @@
     </div>
 
     <script>
-        // 💡 サービスワーカー（オフライン対応）の登録
         if ('serviceWorker' in navigator) {
             const swCode = `
                 const CACHE_NAME = 'shift-app-v1';
@@ -148,7 +163,8 @@
                 [{p:'p1',n:'祐'}, {p:'p2',n:'佑'}].forEach(u => {
                     const b = document.createElement('button');
                     b.className = 'btn s-' + s[u.p];
-                    b.innerText = `${u.n[0]}: ${labels[s[u.p]]}`;
+                    // 🚀 【修正箇所】コロンを半角にし、スペースを詰めて横幅を節約
+                    b.innerText = `${u.n[0]}:${labels[s[u.p]]}`;
                     b.onclick = (e) => {
                         if (!isMultiMode) {
                             e.stopPropagation();
