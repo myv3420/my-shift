@@ -13,200 +13,231 @@
     <style>
         :root {
             --bg: #13121e; --surface: #1e1c2e; --text: #e2dff5;
-            --accent: #c9b8ff; --hiru: #ffe090; --yoru: #c4b3ff; --rest: #ffb3c6;
+            --accent: #c9b8ff; --p1-color: #ffb347; --p2-color: #c9b8ff;
+            --hiru-bg: #413a29; --hiru-text: #ffe090;
+            --yoru-bg: #2c2a4a; --yoru-text: #c4b3ff;
+            --yasumi-bg: #4a2c3a; --yasumi-text: #ffb3c6;
+            --match-color: #a0ffe0; --match-bg: rgba(160, 255, 224, 0.15);
             --sel: rgba(201, 184, 255, 0.4);
+            --sunday-red: #f0889e; --saturday-blue: #7ab4f0;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Zen Maru Gothic', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; min-height: 100vh; }
-        #capture-area { background: var(--bg); padding-bottom: 20px; width: 100%; }
-        .main-content { padding-bottom: 250px; }
-        .hdr { padding: 15px; text-align: center; position: relative; }
-        .m-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 0 10px; }
-        .btn-m { background: #252338; border: none; color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; }
-        .btn-reset { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.05); border: none; color: #5a5280; font-size: 0.6rem; padding: 5px 10px; border-radius: 20px; }
-        .cal-wrap { padding: 10px; }
-        .dow-row { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 5px; }
-        .dow { text-align: center; font-size: 0.6rem; color: #5a5280; }
-        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .day { background: var(--surface); border-radius: 12px; min-height: 95px; padding: 5px; display: flex; flex-direction: column; gap: 3px; position: relative; border: 2px solid transparent; transition: 0.1s; }
-        .day.selected { border-color: var(--accent); background: var(--sel); box-shadow: 0 0 10px var(--accent); }
-        .d-num { font-size: 0.7rem; color: #5a5280; text-align: right; }
+        body { font-family: 'Zen Maru Gothic', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; }
         
-        /* 🚀 【修正箇所】文字を一行に収めるための設定 */
-        .btn { 
-            width: 100%; 
-            border: none; 
-            border-radius: 6px; 
-            padding: 4px 2px; /* 左右の余白を少し詰めました */
-            font-size: 0.55rem; /* 文字を少しだけ小さくしました */
-            font-weight: bold; 
-            text-align: left; 
-            z-index: 10; 
-            position: relative; 
-            white-space: nowrap; /* 👈 これで絶対に改行されません */
-            overflow: hidden;    /* 👈 万が一はみ出しても枠を壊しません */
-            text-overflow: clip; 
+        #capture-area { background: var(--bg); padding: 5px 2px 20px; width: 100%; }
+        .hdr { text-align: center; position: relative; padding-top: 15px; }
+        
+        .title-row { font-size: 1.5rem; font-weight: bold; margin: 5px 0; display: flex; justify-content: center; align-items: baseline; gap: 8px; }
+        .title-year { font-size: 0.9rem; color: var(--accent); opacity: 0.8; }
+
+        .m-row { display: flex; justify-content: space-between; align-items: center; padding: 0 50px; margin-bottom: 8px; }
+        .btn-m { background: #252338; border: none; color: white; width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; }
+        .btn-reset { position: absolute; top: 10px; right: 10px; background: rgba(255, 71, 87, 0.15); border: 1px solid rgba(255, 71, 87, 0.3); color: #ff4757; font-size: 0.7rem; font-weight: bold; padding: 8px 12px; border-radius: 12px; }
+
+        .dow-row { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
+        .dow { text-align: center; font-size: 0.6rem; color: #5a5280; font-weight: bold; }
+
+        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .day { background: var(--surface); border-radius: 6px; min-height: 105px; padding: 2px; display: flex; flex-direction: column; gap: 2px; position: relative; border: 2px solid transparent; overflow: hidden; }
+        
+        .day.today { border-color: #ffffff; box-shadow: 0 0 8px rgba(255,255,255,0.6); z-index: 10; }
+        .day.selected { border-color: var(--accent); background: var(--sel); }
+        
+        .d-num { font-size: 0.7rem; font-weight: bold; color: #5a5280; text-align: right; padding-right: 1px; height: 14px; }
+        .day.is-holiday .d-num, .day.is-sunday .d-num { color: var(--sunday-red); }
+        .day.is-saturday .d-num { color: var(--saturday-blue); }
+
+        .shift-btn { 
+            width: 100%; border-radius: 4px; display: flex; align-items: center; 
+            overflow: hidden; border: none; padding: 0; height: 38px; cursor: pointer; flex-shrink: 0;
+        }
+        .btn-label { width: 12px; font-size: 0.5rem; text-align: center; font-weight: bold; flex-shrink: 0; }
+        .btn-content { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: bold; line-height: 1.1; text-align: center; }
+
+        .s-none { background: #252338; color: #444; }
+        .s-hiru { background: var(--hiru-bg); color: var(--hiru-text); }
+        .s-yoru { background: var(--yoru-bg); color: var(--yoru-text); }
+        .s-yasumi { background: var(--yasumi-bg); color: var(--yasumi-text); }
+
+        .match-label { 
+            font-size: 0.4rem; text-align: center; border-radius: 3px; padding: 1px 0; 
+            font-weight: bold; margin-top: auto; flex-shrink: 0;
+            color: var(--match-color); background: var(--match-bg);
         }
 
-        body.multi-mode-active .btn { pointer-events: none; }
-        .s-none { background: #252338; color: #444; }
-        .s-hiru { background: rgba(255,224,144,0.15); color: var(--hiru); }
-        .s-yoru { background: rgba(196,179,255,0.15); color: var(--yoru); }
-        .s-yasumi { background: rgba(255,179,198,0.15); color: var(--rest); }
-        .match { background: rgba(255,179,198,0.12); color: #ffb3c6; font-size: 0.45rem; text-align: center; border-radius: 4px; margin-top: auto; padding: 1px; font-weight: bold; pointer-events: none; z-index: 5; }
-        .footer { position: fixed; bottom: 0; width: 100%; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: rgba(19, 18, 30, 0.98); z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
-        .multi-label { font-size: 0.65rem; color: var(--accent); font-weight: bold; margin-bottom: 2px; }
-        .tool-group { display: flex; flex-direction: column; gap: 5px; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 12px; }
+        .spacer { height: 180px; width: 100%; }
+
+        .footer { position: fixed; bottom: 0; width: 100%; padding: 8px; display: flex; flex-direction: column; gap: 6px; background: rgba(19,18,30,0.98); z-index: 100; padding-bottom: calc(8px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
         .f-row { display: flex; gap: 5px; }
-        .btn-f { flex: 1; padding: 10px; border-radius: 10px; border: none; font-weight: bold; background: #252338; color: var(--text); font-size: 0.65rem; }
-        .btn-main { background: linear-gradient(135deg, #c9b8ff, #a0c4ff); color: #13121e; padding: 12px; font-size: 0.75rem; }
-        .btn-mode { background: #3b375a; color: var(--accent); }
+        .btn-f { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: bold; background: #252338; color: var(--text); font-size: 0.65rem; }
+        .btn-main { background: linear-gradient(135deg, #c9b8ff, #a0c4ff); color: #13121e; }
         .btn-mode.active { background: var(--accent); color: #13121e; }
-        #img-ov { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; padding: 20px; padding-bottom: 40px; }
-        .img-container { flex: 1; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
-        #res-img { max-width: 100%; max-height: 80%; object-fit: contain; border-radius: 12px; border: 2px solid var(--accent); }
+        
+        #img-ov { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; padding: 20px; }
+        #res-img { max-width: 100%; max-height: 85%; object-fit: contain; border-radius: 10px; }
     </style>
 </head>
-<body id="main-body">
-    <div class="main-content">
-        <div id="capture-area">
-            <div class="hdr">
-                <button class="btn-reset" onclick="resetAll()">🗑️ 全リセット</button>
-                <div style="font-size: 0.9rem; font-weight: bold; color: var(--accent);">🌙 ふたりのシフト</div>
-                <div class="m-row">
-                    <button class="btn-m" onclick="changeM(-1)">‹</button>
-                    <h2 id="title" style="margin:0; font-size:1.1rem;"></h2>
-                    <button class="btn-m" onclick="changeM(1)">›</button>
-                </div>
+<body>
+    <div id="capture-area">
+        <div class="hdr">
+            <button class="btn-reset" onclick="resetAll()">🗑️ 全リセット</button>
+            <div class="title-row">
+                <span class="title-year" id="year-disp">2026年</span>
+                <span id="month-disp">3月</span>
             </div>
-            <div class="cal-wrap">
-                <div class="dow-row"><div class="dow">月</div><div class="dow">火</div><div class="dow">水</div><div class="dow">木</div><div class="dow">金</div><div class="dow" style="color:#7ab4f0">土</div><div class="dow" style="color:#f0889e">日</div></div>
-                <div class="grid" id="grid"></div>
+            <div class="m-row">
+                <button class="btn-m" onclick="changeM(-1)">‹</button>
+                <button class="btn-m" onclick="changeM(1)">›</button>
             </div>
         </div>
+
+        <div class="dow-row">
+            <div class="dow">月</div><div class="dow">火</div><div class="dow">水</div><div class="dow">木</div><div class="dow">金</div><div class="dow" style="color:var(--saturday-blue)">土</div><div class="dow" style="color:var(--sunday-red)">日</div>
+        </div>
+        <div class="grid" id="grid"></div>
+        <div class="spacer"></div>
     </div>
 
     <div class="footer">
-        <div id="multi-tools" style="display:none; flex-direction:column; gap:8px;">
-            <div class="tool-group">
-                <div class="multi-label">👤 祐さん（上段）を一括入力</div>
-                <div class="f-row">
-                    <button class="btn-f" style="color:var(--hiru)" onclick="applyMulti('p1','hiru')">昼☀</button>
-                    <button class="btn-f" style="color:var(--yoru)" onclick="applyMulti('p1','yoru')">夜🌙</button>
-                    <button class="btn-f" style="color:var(--rest)" onclick="applyMulti('p1','yasumi')">休み</button>
-                </div>
+        <div id="multi-tools" style="display:none; flex-direction:column; gap:5px; margin-bottom:5px;">
+            <div class="f-row">
+                <button class="btn-f" onclick="applyMulti('p1','hiru')" style="color:var(--hiru-text)">祐:昼☀️</button>
+                <button class="btn-f" onclick="applyMulti('p1','yoru')" style="color:var(--yoru-text)">祐:夜🌙</button>
+                <button class="btn-f" onclick="applyMulti('p1','yasumi')" style="color:var(--yasumi-text)">祐:休💤</button>
             </div>
-            <div class="tool-group">
-                <div class="multi-label">👤 佑さん（下段）を一括入力</div>
-                <div class="f-row">
-                    <button class="btn-f" style="color:var(--hiru)" onclick="applyMulti('p2','hiru')">昼☀</button>
-                    <button class="btn-f" style="color:var(--yoru)" onclick="applyMulti('p2','yoru')">夜🌙</button>
-                    <button class="btn-f" style="color:var(--rest)" onclick="applyMulti('p2','yasumi')">休み</button>
-                </div>
+            <div class="f-row">
+                <button class="btn-f" onclick="applyMulti('p2','hiru')" style="color:var(--hiru-text)">佑:昼☀️</button>
+                <button class="btn-f" onclick="applyMulti('p2','yoru')" style="color:var(--yoru-text)">佑:夜🌙</button>
+                <button class="btn-f" onclick="applyMulti('p2','yasumi')" style="color:var(--yasumi-text)">佑:休💤</button>
             </div>
         </div>
         <div class="f-row">
-            <button id="mode-btn" class="btn-f btn-mode" onclick="toggleMode()">🖱️ 複数選択モード</button>
+            <button id="mode-btn" class="btn-f btn-mode" onclick="toggleMode()">🖱️ 複数選択</button>
             <button class="btn-f btn-main" onclick="takePhoto()">📸 画像保存</button>
         </div>
     </div>
 
     <div id="img-ov">
-        <div style="font-size: 0.8rem; margin-bottom: 15px; color: #fff;">👇 画像を長押しして「保存」してね！</div>
-        <div class="img-container"><img id="res-img"></div>
-        <button class="btn-f" style="width:150px; flex:none; margin-top:20px;" onclick="document.getElementById('img-ov').style.display='none'">とじる</button>
+        <img id="res-img">
+        <button class="btn-f" style="margin-top:20px; max-width:150px;" onclick="document.getElementById('img-ov').style.display='none'">閉じる</button>
     </div>
 
     <script>
-        if ('serviceWorker' in navigator) {
-            const swCode = `
-                const CACHE_NAME = 'shift-app-v1';
-                self.addEventListener('install', e => {
-                    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])));
-                });
-                self.addEventListener('fetch', e => {
-                    e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
-                });
-            `;
-            const blob = new Blob([swCode], {type: 'application/javascript'});
-            navigator.serviceWorker.register(URL.createObjectURL(blob));
-        }
-
         let curY = new Date().getFullYear(), curM = new Date().getMonth();
-        let data = JSON.parse(localStorage.getItem('shift_v_pwa') || '{}');
+        let data = JSON.parse(localStorage.getItem('shift_v_final') || '{}');
         let selectedDays = [];
         let isMultiMode = false;
-        const labels = {none:'－', hiru:'昼☀', yoru:'夜🌙', yasumi:'休み'};
-        const cycles = ['none', 'hiru', 'yoru', 'yasumi'];
+
+        function getHolidayName(y, m, d) {
+            const date = new Date(y, m - 1, d);
+            const w = date.getDay();
+            const n = Math.floor((d - 1) / 7) + 1;
+            if (m === 1 && d === 1) return "元日";
+            if (m === 1 && w === 1 && n === 2) return "成人の日";
+            if (m === 2 && d === 11) return "建国記念の日";
+            if (m === 2 && d === 23) return "天皇誕生日";
+            if (m === 3 && d === Math.floor(20.8431 + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4))) return "春分の日";
+            if (m === 4 && d === 29) return "昭和の日";
+            if (m === 5 && d === 3) return "憲法記念日";
+            if (m === 5 && d === 4) return "みどりの日";
+            if (m === 5 && d === 5) return "こどもの日";
+            if (m === 7 && w === 1 && n === 3) return "海の日";
+            if (m === 8 && d === 11) return "山の日";
+            if (m === 9 && w === 1 && n === 3) return "敬老の日";
+            if (m === 9 && d === Math.floor(23.2488 + 0.242194 * (y - 1980) - Math.floor((y - 1980) / 4))) return "秋分の日";
+            if (m === 10 && w === 1 && n === 2) return "スポーツの日";
+            if (m === 11 && d === 3) return "文化の日";
+            if (m === 11 && d === 23) return "勤労感謝の日";
+            return null;
+        }
 
         function render() {
-            document.getElementById('title').innerText = `${curY}年 ${curM + 1}月`;
+            document.getElementById('year-disp').innerText = `${curY}年`;
+            document.getElementById('month-disp').innerText = `${curM + 1}月`;
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
+            const today = new Date();
+            const tY = today.getFullYear(), tM = today.getMonth(), tD = today.getDate();
             const first = new Date(curY, curM, 1).getDay();
             const offset = first === 0 ? 6 : first - 1;
             const last = new Date(curY, curM + 1, 0).getDate();
-            for (let i=0; i<offset; i++) grid.appendChild(Object.assign(document.createElement('div'), {className:'day', style:'opacity:0'}));
+            for (let i=0; i<offset; i++) grid.appendChild(Object.assign(document.createElement('div'), {className:'day', style:'opacity:0; pointer-events:none;'}));
+
             for (let d = 1; d <= last; d++) {
                 const key = `${curY}-${curM+1}-${d}`;
                 const s = data[key] || { p1: 'none', p2: 'none' };
                 const box = document.createElement('div');
-                box.className = 'day' + (selectedDays.includes(key) ? ' selected' : '');
+                const dateObj = new Date(curY, curM, d);
+                const w = dateObj.getDay();
+                const holiday = getHolidayName(curY, curM + 1, d);
+                const isToday = (curY === tY && curM === tM && d === tD);
+                
+                box.className = 'day';
+                if (isToday) box.classList.add('today');
+                if (selectedDays.includes(key)) box.classList.add('selected');
+                if (w === 0) box.classList.add('is-sunday');
+                if (w === 6) box.classList.add('is-saturday');
+                if (holiday) box.classList.add('is-holiday');
+
                 box.innerHTML = `<div class="d-num">${d}</div>`;
-                box.addEventListener('click', () => {
-                    if (isMultiMode) {
-                        if (selectedDays.includes(key)) selectedDays = selectedDays.filter(k => k !== key);
-                        else selectedDays.push(key);
-                        render();
-                    }
-                });
+                box.onclick = () => { if (isMultiMode) { toggleDaySelect(key); render(); } };
+
                 [{p:'p1',n:'祐'}, {p:'p2',n:'佑'}].forEach(u => {
-                    const b = document.createElement('button');
-                    b.className = 'btn s-' + s[u.p];
-                    // 🚀 【修正箇所】コロンを半角にし、スペースを詰めて横幅を節約
-                    b.innerText = `${u.n[0]}:${labels[s[u.p]]}`;
-                    b.onclick = (e) => {
+                    const btn = document.createElement('button');
+                    btn.className = `shift-btn s-${s[u.p]}`;
+                    let html = "－";
+                    if(s[u.p] === 'hiru') html = "昼<br>☀️";
+                    else if(s[u.p] === 'yoru') html = "夜<br>🌙";
+                    else if(s[u.p] === 'yasumi') html = "休<br>💤";
+                    btn.innerHTML = `<div class="btn-label" style="color:${u.p==='p1'?'var(--p1-color)':'var(--p2-color)'}">${u.n}</div><div class="btn-content">${html}</div>`;
+                    btn.onclick = (e) => {
                         if (!isMultiMode) {
                             e.stopPropagation();
+                            const cycles = ['none', 'hiru', 'yoru', 'yasumi'];
                             s[u.p] = cycles[(cycles.indexOf(s[u.p]) + 1) % 4];
                             data[key] = s; save(); render();
                         }
                     };
-                    box.appendChild(b);
+                    box.appendChild(btn);
                 });
+
                 if(s.p1 !== 'none' && s.p1 === s.p2) {
-                    const m = document.createElement('div'); m.className='match'; m.innerText='💕一致'; box.appendChild(m);
+                    const m = document.createElement('div');
+                    m.className = 'match-label';
+                    if(s.p1 === 'hiru') m.innerText = '昼☀️一致';
+                    else if(s.p1 === 'yoru') m.innerText = '夜🌙一致';
+                    else if(s.p1 === 'yasumi') m.innerText = '💕一致';
+                    box.appendChild(m);
                 }
                 grid.appendChild(box);
             }
         }
+
+        function toggleDaySelect(key) {
+            if (selectedDays.includes(key)) selectedDays = selectedDays.filter(k => k !== key);
+            else selectedDays.push(key);
+        }
         function toggleMode() {
             isMultiMode = !isMultiMode; selectedDays = [];
-            const btn = document.getElementById('mode-btn');
-            const tools = document.getElementById('multi-tools');
-            btn.innerText = isMultiMode ? "🚫 選択解除して終了" : "🖱️ 複数選択モード";
-            btn.classList.toggle('active', isMultiMode);
-            tools.style.display = isMultiMode ? 'flex' : 'none';
-            document.getElementById('main-body').classList.toggle('multi-mode-active', isMultiMode);
+            document.getElementById('mode-btn').classList.toggle('active', isMultiMode);
+            document.getElementById('multi-tools').style.display = isMultiMode ? 'flex' : 'none';
             render();
         }
         function applyMulti(targetP, type) {
-            if (selectedDays.length === 0) { alert("日付を選んでね！"); return; }
+            if (selectedDays.length === 0) return;
             selectedDays.forEach(key => {
                 if (!data[key]) data[key] = { p1: 'none', p2: 'none' };
                 data[key][targetP] = type;
             });
             save(); render();
         }
-        function save() { localStorage.setItem('shift_v_pwa', JSON.stringify(data)); }
-        function resetAll() { if(confirm("全部消しますか？")) { data={}; save(); render(); } }
+        function save() { localStorage.setItem('shift_v_final', JSON.stringify(data)); }
+        function resetAll() { if(confirm("【重要】すべてのシフトデータを消去しますか？")) { data={}; save(); render(); } }
         function changeM(v) { curM += v; if(curM>11){curM=0;curY++;} if(curM<0){curM=11;curY--;} render(); }
         function takePhoto() {
-            const area = document.getElementById('capture-area');
-            const btn = event.target;
-            btn.innerText = "作成中...";
-            html2canvas(area, { backgroundColor: "#13121e", scale: 3, useCORS: true }).then(canvas => {
-                document.getElementById('res-img').src = canvas.toDataURL("image/png");
+            const btn = event.target; btn.innerText = "...";
+            html2canvas(document.getElementById('capture-area'), { backgroundColor: "#13121e", scale: 2, height: document.getElementById('capture-area').offsetHeight - 180 }).then(canvas => {
+                document.getElementById('res-img').src = canvas.toDataURL();
                 document.getElementById('img-ov').style.display = 'flex';
                 btn.innerText = "📸 画像保存";
             });
