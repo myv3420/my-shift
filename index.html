@@ -22,37 +22,65 @@
             --sunday-red: #f0889e; --saturday-blue: #7ab4f0;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Zen Maru Gothic', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; }
+        body { font-family: 'Zen Maru Gothic', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; min-height: 100vh; overflow: hidden; }
         
-        #capture-area { background: var(--bg); padding: 5px 2px 20px; width: 100%; }
-        .hdr { text-align: center; position: relative; padding-top: 15px; }
-        
-        .title-row { font-size: 1.5rem; font-weight: bold; margin: 5px 0; display: flex; justify-content: center; align-items: baseline; gap: 8px; }
+        /* 🚀 ヘッダー：年月を強調 */
+        .hdr { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px 10px 15px;
+            gap: 20px;
+        }
+        .title-row { 
+            text-align: center; 
+            display: flex; 
+            align-items: baseline; 
+            gap: 8px; 
+        }
         .title-year { font-size: 0.9rem; color: var(--accent); opacity: 0.8; }
-
-        .m-row { display: flex; justify-content: space-between; align-items: center; padding: 0 50px; margin-bottom: 8px; }
-        .btn-m { background: #252338; border: none; color: white; width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; }
-        .btn-reset { position: absolute; top: 10px; right: 10px; background: rgba(255, 71, 87, 0.15); border: 1px solid rgba(255, 71, 87, 0.3); color: #ff4757; font-size: 0.7rem; font-weight: bold; padding: 8px 12px; border-radius: 12px; }
-
-        .dow-row { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
-        .dow { text-align: center; font-size: 0.6rem; color: #5a5280; font-weight: bold; }
-
-        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-        .day { background: var(--surface); border-radius: 6px; min-height: 105px; padding: 2px; display: flex; flex-direction: column; gap: 2px; position: relative; border: 2px solid transparent; overflow: hidden; }
+        #month-disp { font-size: 1.8rem; font-weight: 700; line-height: 1; color: var(--text); }
         
-        .day.today { border-color: #ffffff; box-shadow: 0 0 8px rgba(255,255,255,0.6); z-index: 10; }
+        .btn-m { background: #252338; border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+        /* 📖 スワイプコンテナ */
+        #scroll-container {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            width: 100%;
+            height: calc(100vh - 200px);
+        }
+        #scroll-container::-webkit-scrollbar { display: none; }
+
+        .calendar-page {
+            flex: 0 0 100%;
+            width: 100%;
+            scroll-snap-align: start;
+            padding: 0 8px 120px;
+            overflow-y: auto;
+        }
+
+        .dow-row { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 8px; padding: 0 8px; }
+        .dow { text-align: center; font-size: 0.7rem; color: #5a5280; font-weight: bold; }
+
+        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+        
+        .day { background: var(--surface); border-radius: 8px; min-height: 95px; padding: 4px 2px; display: flex; flex-direction: column; gap: 3px; position: relative; border: 2px solid transparent; overflow: hidden; }
+        .day.today { border-color: #ffffff; box-shadow: 0 0 10px rgba(255,255,255,0.4); z-index: 10; }
         .day.selected { border-color: var(--accent); background: var(--sel); }
         
-        .d-num { font-size: 0.7rem; font-weight: bold; color: #5a5280; text-align: right; padding-right: 1px; height: 14px; }
+        .d-num { font-size: 0.75rem; font-weight: bold; color: #5a5280; text-align: right; padding-right: 2px; height: 16px; }
         .day.is-holiday .d-num, .day.is-sunday .d-num { color: var(--sunday-red); }
         .day.is-saturday .d-num { color: var(--saturday-blue); }
 
         .shift-btn { 
-            width: 100%; border-radius: 4px; display: flex; align-items: center; 
-            overflow: hidden; border: none; padding: 0; height: 38px; cursor: pointer; flex-shrink: 0;
+            width: 100%; border-radius: 5px; display: flex; align-items: center; 
+            overflow: hidden; border: none; padding: 0; height: 34px; cursor: pointer; flex-shrink: 0;
         }
         .btn-label { width: 12px; font-size: 0.5rem; text-align: center; font-weight: bold; flex-shrink: 0; }
-        .btn-content { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: bold; line-height: 1.1; text-align: center; }
+        .btn-content { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: bold; line-height: 1; text-align: center; }
 
         .s-none { background: #252338; color: #444; }
         .s-hiru { background: var(--hiru-bg); color: var(--hiru-text); }
@@ -60,18 +88,18 @@
         .s-yasumi { background: var(--yasumi-bg); color: var(--yasumi-text); }
 
         .match-label { 
-            font-size: 0.4rem; text-align: center; border-radius: 3px; padding: 1px 0; 
+            font-size: 0.45rem; text-align: center; border-radius: 4px; padding: 2px 0; 
             font-weight: bold; margin-top: auto; flex-shrink: 0;
             color: var(--match-color); background: var(--match-bg);
         }
 
-        .spacer { height: 180px; width: 100%; }
-
-        .footer { position: fixed; bottom: 0; width: 100%; padding: 8px; display: flex; flex-direction: column; gap: 6px; background: rgba(19,18,30,0.98); z-index: 100; padding-bottom: calc(8px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
-        .f-row { display: flex; gap: 5px; }
-        .btn-f { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: bold; background: #252338; color: var(--text); font-size: 0.65rem; }
+        /* 🚀 フッター：3つのボタンを1列に */
+        .footer { position: fixed; bottom: 0; width: 100%; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: rgba(19,18,30,0.98); z-index: 100; padding-bottom: calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
+        .f-row { display: flex; gap: 6px; }
+        .btn-f { flex: 1; padding: 12px 5px; border-radius: 12px; border: none; font-weight: bold; background: #252338; color: var(--text); font-size: 0.65rem; display: flex; align-items: center; justify-content: center; gap: 4px; }
         .btn-main { background: linear-gradient(135deg, #c9b8ff, #a0c4ff); color: #13121e; }
         .btn-mode.active { background: var(--accent); color: #13121e; }
+        .btn-danger { background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.2); color: #ff4757; }
         
         #img-ov { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; padding: 20px; }
         #res-img { max-width: 100%; max-height: 85%; object-fit: contain; border-radius: 10px; }
@@ -80,22 +108,23 @@
 <body>
     <div id="capture-area">
         <div class="hdr">
-            <button class="btn-reset" onclick="resetAll()">🗑️ 全リセット</button>
+            <button class="btn-m" onclick="changeM(-1)">‹</button>
             <div class="title-row">
                 <span class="title-year" id="year-disp">2026年</span>
                 <span id="month-disp">3月</span>
             </div>
-            <div class="m-row">
-                <button class="btn-m" onclick="changeM(-1)">‹</button>
-                <button class="btn-m" onclick="changeM(1)">›</button>
-            </div>
+            <button class="btn-m" onclick="changeM(1)">›</button>
         </div>
 
         <div class="dow-row">
             <div class="dow">月</div><div class="dow">火</div><div class="dow">水</div><div class="dow">木</div><div class="dow">金</div><div class="dow" style="color:var(--saturday-blue)">土</div><div class="dow" style="color:var(--sunday-red)">日</div>
         </div>
-        <div class="grid" id="grid"></div>
-        <div class="spacer"></div>
+
+        <div id="scroll-container">
+            <div class="calendar-page">
+                <div class="grid" id="grid"></div>
+            </div>
+        </div>
     </div>
 
     <div class="footer">
@@ -112,6 +141,7 @@
             </div>
         </div>
         <div class="f-row">
+            <button class="btn-f btn-danger" onclick="resetAll()">🗑️ リセット</button>
             <button id="mode-btn" class="btn-f btn-mode" onclick="toggleMode()">🖱️ 複数選択</button>
             <button class="btn-f btn-main" onclick="takePhoto()">📸 画像保存</button>
         </div>
@@ -127,6 +157,15 @@
         let data = JSON.parse(localStorage.getItem('shift_v_final') || '{}');
         let selectedDays = [];
         let isMultiMode = false;
+
+        let touchStartX = 0;
+        const scrollContainer = document.getElementById('scroll-container');
+        scrollContainer.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+        scrollContainer.addEventListener('touchend', e => {
+            const touchEndX = e.changedTouches[0].screenX;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 60) changeM(diff > 0 ? 1 : -1);
+        }, {passive: true});
 
         function getHolidayName(y, m, d) {
             const date = new Date(y, m - 1, d);
@@ -161,6 +200,7 @@
             const first = new Date(curY, curM, 1).getDay();
             const offset = first === 0 ? 6 : first - 1;
             const last = new Date(curY, curM + 1, 0).getDate();
+            
             for (let i=0; i<offset; i++) grid.appendChild(Object.assign(document.createElement('div'), {className:'day', style:'opacity:0; pointer-events:none;'}));
 
             for (let d = 1; d <= last; d++) {
@@ -186,9 +226,9 @@
                     const btn = document.createElement('button');
                     btn.className = `shift-btn s-${s[u.p]}`;
                     let html = "－";
-                    if(s[u.p] === 'hiru') html = "昼<br>☀️";
-                    else if(s[u.p] === 'yoru') html = "夜<br>🌙";
-                    else if(s[u.p] === 'yasumi') html = "休<br>💤";
+                    if(s[u.p] === 'hiru') html = "昼☀️";
+                    else if(s[u.p] === 'yoru') html = "夜🌙";
+                    else if(s[u.p] === 'yasumi') html = "休💤";
                     btn.innerHTML = `<div class="btn-label" style="color:${u.p==='p1'?'var(--p1-color)':'var(--p2-color)'}">${u.n}</div><div class="btn-content">${html}</div>`;
                     btn.onclick = (e) => {
                         if (!isMultiMode) {
@@ -232,14 +272,28 @@
             save(); render();
         }
         function save() { localStorage.setItem('shift_v_final', JSON.stringify(data)); }
-        function resetAll() { if(confirm("【重要】すべてのシフトデータを消去しますか？")) { data={}; save(); render(); } }
-        function changeM(v) { curM += v; if(curM>11){curM=0;curY++;} if(curM<0){curM=11;curY--;} render(); }
+        function resetAll() { if(confirm("すべてのシフトをリセットしますか？")) { data={}; save(); render(); } }
+        
+        function changeM(v) { 
+            curM += v; 
+            if(curM>11){curM=0;curY++;} 
+            if(curM<0){curM=11;curY--;} 
+            render();
+            document.querySelector('.calendar-page').scrollTop = 0;
+        }
+
         function takePhoto() {
-            const btn = event.target; btn.innerText = "...";
-            html2canvas(document.getElementById('capture-area'), { backgroundColor: "#13121e", scale: 2, height: document.getElementById('capture-area').offsetHeight - 180 }).then(canvas => {
+            const btn = event.target; 
+            const originalText = btn.innerText;
+            btn.innerText = "...";
+            html2canvas(document.getElementById('capture-area'), { 
+                backgroundColor: "#13121e", 
+                scale: 2,
+                useCORS: true
+            }).then(canvas => {
                 document.getElementById('res-img').src = canvas.toDataURL();
                 document.getElementById('img-ov').style.display = 'flex';
-                btn.innerText = "📸 画像保存";
+                btn.innerText = originalText;
             });
         }
         render();
